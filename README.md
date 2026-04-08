@@ -43,7 +43,37 @@ claude plugin add prodkit
 
 Each skill is a structured prompt that guides Claude Code through a specific PM workflow. Skills ask clarifying questions, check your project context, and produce artifacts (docs, analyses, checklists) saved to your workspace.
 
-Skills reference common file paths like `knowledge/`, `projects/`, and `work/`. These are conventions, not requirements. Adapt the paths to your project structure, or the skills will work with whatever context you provide in conversation.
+Skills reference common file paths like `knowledge/`, `projects/`, and `work/`. These are conventions, not requirements. Prodkit detects your existing folder structure and adapts to it.
+
+## Knowledge Architecture
+
+Prodkit uses a three-layer knowledge system inspired by [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). Instead of re-deriving context from scratch every session, knowledge compounds over time in a persistent wiki that the LLM maintains for you.
+
+```
+knowledge/
+  raw/            <- Your original documents. LLM reads, never writes.
+  wiki/           <- LLM-maintained pages. Entities, concepts, features, decisions.
+    INDEX.md      <- Front page. LLM reads this first to navigate.
+  prodkit-learning-log.md  <- Operation history and usage patterns.
+```
+
+**Three layers:**
+
+1. **Raw sources** (`knowledge/raw/`). Drop your documents here: interview transcripts, strategy decks, analytics exports, competitor screenshots. Prodkit reads them but never modifies them. They're the source of truth.
+
+2. **The wiki** (`knowledge/wiki/`). Prodkit writes and maintains this. Entity pages for people and companies. Feature pages that aggregate specs, sizing, and decisions. Concept pages for frameworks. Comparison pages for competitors. Cross-linked, backlinked, and kept consistent as new sources arrive.
+
+3. **The schema** (`CLAUDE.md`). Tells the LLM how to ingest sources, query the wiki, and maintain it over time. You and the LLM co-evolve this as you figure out what works for your domain.
+
+**Three operations:**
+
+- **Ingest.** Drop a source into `raw/`, tell prodkit to process it. It extracts entities, updates wiki pages, flags contradictions with existing knowledge, and logs the operation.
+- **Query.** Ask a question. Prodkit reads the wiki index, loads relevant pages, and synthesizes an answer. Good answers get filed back as new wiki pages so your explorations compound.
+- **Maintain.** Periodically, prodkit suggests cleanup: find contradictions, flag stale pages, add missing cross-links. You approve before anything changes.
+
+**Skills feed the wiki automatically.** When you run `/feature-spec-interview`, prodkit creates a feature page. `/competitor-analysis` updates entity pages. `/impact-sizing` adds data to the feature page. `/decision-doc` creates a decision page with backlinks. Over time, the wiki becomes a comprehensive, cross-referenced product knowledge base that makes every future skill run better informed.
+
+The wiki is optional. Skills work without it. But once it starts building, each session gets smarter than the last.
 
 ## The Feature Spec Interview
 

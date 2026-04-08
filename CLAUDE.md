@@ -1,6 +1,150 @@
-# Prodkit - Behavioral Automation Layer
+# Prodkit - Schema
 
-This file encodes 7 automation systems that make prodkit skills smarter across sessions. Every automation works passively. No setup required.
+This file is the schema layer of prodkit's knowledge system (inspired by Karpathy's LLM Wiki pattern). It tells the LLM how to maintain the user's product knowledge base and how skills interact with it.
+
+Two jobs: (1) define the three-layer knowledge architecture, and (2) encode 7 passive automations that make skills smarter across sessions.
+
+No setup required. Everything activates on first use.
+
+---
+
+## Knowledge Architecture
+
+Prodkit maintains a three-layer knowledge system. The LLM writes and maintains the wiki. The user curates sources and asks questions.
+
+### Layer 1: Raw Sources (user-owned, immutable)
+
+Location: `knowledge/raw/`
+
+Drop original documents here. The LLM reads but never writes to this folder. These are the source of truth for verification.
+
+Examples: uploaded PRDs, interview transcripts, strategy decks, exported analytics, competitive screenshots, research papers, Slack threads, email chains.
+
+**Rules:**
+- Never modify, rename, or delete files in `raw/`
+- Subfolders are fine for organization (`raw/interviews/`, `raw/competitor-decks/`, `raw/analytics-exports/`)
+- If the user pastes content inline (no file), offer to save it to `raw/` for future reference
+
+### Layer 2: The Wiki (LLM-owned, compounding)
+
+Location: `knowledge/wiki/`
+
+LLM-generated and maintained markdown pages. This is where knowledge compounds. Every source ingested, every skill run, every good answer gets compiled here.
+
+**Page types:**
+
+| Type | Naming convention | Purpose |
+|------|------------------|---------|
+| Index | `INDEX.md` | Front page. Categorized table of contents with one-line summaries. The LLM reads this first to navigate the wiki. |
+| Entity | `entity-<name>.md` | A person, company, product, or team. Key facts, relationships, context. |
+| Concept | `concept-<name>.md` | A domain concept, framework, or pattern. Definition, examples, cross-links. |
+| Feature | `feature-<name>.md` | Synthesized knowledge about a feature. Aggregates spec, sizing, research, decisions. |
+| Comparison | `comparison-<topic>.md` | Side-by-side analysis. Competitors, approaches, trade-offs. |
+| Synthesis | `synthesis-<topic>.md` | Cross-cutting insight that connects multiple sources or features. |
+| Decision | `decision-<topic>.md` | Why a decision was made, alternatives considered, trade-offs accepted. |
+
+**Page format (every wiki page):**
+
+```markdown
+# [Page Title]
+
+> Sources: [[raw/source1.md]], [[raw/source2.pdf]]
+> Last updated: YYYY-MM-DD
+> Updated by: /skill-name or manual ingest
+
+[Content organized by the page type's natural structure]
+
+## Links
+- [[Related: entity-team-name]]
+- [[See also: concept-framework-name]]
+- [[Contradicts: synthesis-old-assumption]] (if applicable)
+```
+
+**INDEX.md structure:**
+
+```markdown
+# Wiki Index
+
+## Entities
+- [[entity-<name>]] - one-line summary
+
+## Features
+- [[feature-<name>]] - one-line summary with current status
+
+## Concepts
+- [[concept-<name>]] - one-line summary
+
+## Comparisons
+- [[comparison-<topic>]] - what's compared
+
+## Syntheses
+- [[synthesis-<topic>]] - cross-cutting insight
+
+## Decisions
+- [[decision-<topic>]] - what was decided and when
+
+## Recent Activity
+- YYYY-MM-DD: Ingested [source], updated N pages
+- YYYY-MM-DD: /skill-name produced [output], updated N pages
+```
+
+### Layer 3: The Schema (this file)
+
+This CLAUDE.md is the schema. It tells the LLM how to ingest, query, maintain, and connect knowledge. The user and LLM co-evolve this over time.
+
+### Operations
+
+**Ingest (when user drops a new source or shares context):**
+
+1. Save to `knowledge/raw/` if not already there
+2. Read the source fully
+3. Discuss key takeaways with the user (don't silently process)
+4. Create or update wiki pages: extract entities, concepts, claims
+5. Add backlinks between new and existing pages
+6. Flag contradictions: "This conflicts with [[decision-X]] from [date]. Which is current?"
+7. Update `INDEX.md` with new/changed entries
+8. Log the operation in the learning log
+
+**Query (when user asks a question):**
+
+1. Read `knowledge/wiki/INDEX.md` to find relevant pages
+2. Load 2-5 relevant wiki pages
+3. Synthesize answer with citations to wiki pages (and through them, raw sources)
+4. If the answer is valuable enough to persist (comparison, analysis, new insight), offer to file it back as a new wiki page
+5. If the question reveals a gap in the wiki, note it
+
+**Maintain (periodic, suggest but don't auto-run):**
+
+After 10+ wiki pages exist, periodically suggest maintenance:
+- Find contradictions between pages
+- Flag stale pages (sources older than 30 days for research, 90 days for strategy)
+- Suggest new cross-links between pages that reference similar concepts
+- Identify missing entity or concept pages (mentioned in other pages but no dedicated page)
+- Check if any raw sources haven't been ingested yet
+
+### How Skills Feed the Wiki
+
+Every prodkit skill run should update the wiki, not just produce a standalone file.
+
+| Skill | Wiki effect |
+|-------|-------------|
+| `/feature-spec-interview` | Create or update `feature-<name>.md` with spec details. Create entity pages for new stakeholders mentioned. |
+| `/feature-doc-review-panel` | Append review findings to `feature-<name>.md`. Log key concerns as cross-links. |
+| `/impact-sizing` | Add sizing data to `feature-<name>.md`. Update entity pages with addressable user segments. |
+| `/prioritize` | Update INDEX.md with current priority rankings. Tag feature pages with L/N/O classification. |
+| `/define-north-star` | Create `concept-north-star.md`. Cross-link to all feature pages that ladder to it. |
+| `/competitor-analysis` | Create or update `entity-<competitor>.md` and `comparison-<market>.md`. |
+| `/user-research-synthesis` | Create `synthesis-<theme>.md` for each major theme. Link to `raw/` interview sources. |
+| `/decision-doc` | Create `decision-<topic>.md`. Backlink to features and entities affected. |
+| `/launch-checklist` | Update `feature-<name>.md` with launch status and checklist link. |
+
+**Rules:**
+- Wiki updates happen alongside normal skill output (not instead of it). The skill still produces its standalone artifact in the appropriate folder.
+- Don't block skills if the wiki doesn't exist yet. Create pages on first use.
+- Keep wiki pages concise. Link to the full skill output rather than duplicating content.
+- When updating an existing page, note what changed and why in the page's content.
+
+---
 
 ## 1. MCP Routing Engine
 
@@ -26,7 +170,7 @@ Route natural language questions to the right data source automatically. Check M
 
 ## 2. Self-Updating Learning Log
 
-Track usage patterns and corrections to improve skill quality over time. Maintain a lightweight log at `knowledge/prodkit-learning-log.md`.
+Track usage patterns and corrections to improve skill quality over time. Maintain a lightweight log at `knowledge/prodkit-learning-log.md`. This log also serves as the wiki's operation history, recording every ingest, skill run, and maintenance task.
 
 **What to track:**
 
