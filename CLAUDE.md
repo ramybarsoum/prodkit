@@ -138,10 +138,18 @@ Every prodkit skill run should update the wiki, not just produce a standalone fi
 | `/decision-doc` | Create `decision-<topic>.md`. Backlink to features and entities affected. |
 | `/launch-checklist` | Update `feature-<name>.md` with launch status and checklist link. |
 
+**Where skill outputs land:**
+
+| Output type | Destination | Why |
+|-------------|------------|-----|
+| Feature specs, review reports, launch checklists | `projects/<initiative>/` | Scoped to a named feature or project |
+| Research synthesis, competitor analysis, decisions, impact sizing, prioritization, North Star | `knowledge/wiki/` | Cross-cutting knowledge that compounds |
+
+The test: can you name the initiative? If yes, `projects/`. If it's general knowledge, `knowledge/wiki/`.
+
 **Rules:**
-- Wiki updates happen alongside normal skill output (not instead of it). The skill still produces its standalone artifact in the appropriate folder.
-- Don't block skills if the wiki doesn't exist yet. Create pages on first use.
-- Keep wiki pages concise. Link to the full skill output rather than duplicating content.
+- Don't block skills if the wiki or projects folder doesn't exist yet. Create on first use.
+- Keep wiki pages concise. Link to raw sources rather than duplicating content.
 - When updating an existing page, note what changed and why in the page's content.
 
 ---
@@ -154,13 +162,13 @@ Route natural language questions to the right data source automatically. Check M
 
 | Query pattern | Primary source | Fallback |
 |---------------|---------------|----------|
-| Metrics, funnels, retention, conversion | Analytics MCPs (Amplitude, Mixpanel, Posthog, Pendo) | `knowledge/metrics/` |
-| Feature performance, adoption numbers | Analytics MCPs + `projects/` | `knowledge/research/` |
-| Open tasks, ticket status, epic progress | PM MCPs (Linear, Jira) | Recent meeting notes for action items |
-| User quotes, research themes, pain points | Research MCPs (Dovetail) | `knowledge/research/` |
-| Competitor moves, market intel | Web search | `knowledge/research/competitive-*.md` |
-| Past decisions, strategy rationale | `knowledge/decisions/` | `knowledge/strategy/` |
-| Meeting action items, follow-ups | `knowledge/meetings/` | PM MCPs for task status |
+| Metrics, funnels, retention, conversion | Analytics MCPs (Amplitude, Mixpanel, Posthog, Pendo) | `knowledge/wiki/` (any page with metrics data) |
+| Feature performance, adoption numbers | Analytics MCPs | `knowledge/wiki/feature-*.md` |
+| Open tasks, ticket status, epic progress | PM MCPs (Linear, Jira) | `knowledge/wiki/` (action items in feature or decision pages) |
+| User quotes, research themes, pain points | Research MCPs (Dovetail) | `knowledge/wiki/synthesis-*.md` and `knowledge/raw/` |
+| Competitor moves, market intel | Web search | `knowledge/wiki/entity-*.md` and `knowledge/wiki/comparison-*.md` |
+| Past decisions, strategy rationale | `knowledge/wiki/decision-*.md` | `knowledge/wiki/concept-*.md` |
+| Meeting action items, follow-ups | `knowledge/wiki/` | PM MCPs for task status |
 
 **Rules:**
 - If multiple MCPs of the same category are connected, ask which one to use
@@ -190,59 +198,20 @@ Track usage patterns and corrections to improve skill quality over time. Maintai
 - Format: `YYYY-MM-DD | signal_type | detail`
 - Review prompt: if the log has 20+ entries and hasn't been reviewed, suggest a monthly review
 
-## 3. Context Auto-Organization
+## 3. File Routing
 
-When creating output files, detect the user's existing folder structure first. Never impose a layout on someone else's repo.
+Two output destinations. No exceptions.
 
-**Step 1: Detect existing structure (run once per session, cache the result)**
-
-On first file save, scan the repo root for common PM folder patterns:
-
-| Pattern to check | Matches |
-|-----------------|---------|
-| `projects/` or `specs/` or `features/` | Initiative-scoped folders |
-| `work/` or `outputs/` or `docs/` or `documents/` | General work products |
-| `knowledge/` or `context/` or `context-library/` or `reference/` | Reference material |
-| `decisions/` (at any level) | Decision docs |
-| `research/` (at any level) | Research outputs |
-| `analyses/` or `analysis/` (at any level) | Analytical outputs |
-
-Also check: CLAUDE.md for explicit path conventions. Any existing prodkit output files (via the `<!-- prodkit |` version header) to see where past outputs landed.
-
-**Step 2: Map output types to detected folders**
-
-If the repo already has structure, use it. Map each output type to the closest existing folder:
-
-| Output type | Preferred folder (in priority order) |
-|-------------|--------------------------------------|
-| Feature specs, PRDs | First match: `projects/`, `specs/`, `features/`, `docs/` |
-| Decision docs | First match: `decisions/`, `work/decisions/`, `docs/decisions/` |
-| Impact analyses | First match: `analyses/`, `work/analyses/`, `docs/` |
-| Prioritization results | Same as impact analyses |
-| Launch checklists | First match: `checklists/`, `work/checklists/`, `docs/` |
-| Competitive analyses | First match: `research/`, `work/research/`, `docs/` |
-| Research synthesis | Same as competitive analyses |
-| Review panel reports | Same folder as the spec being reviewed |
-| North Star definitions | First match: `knowledge/strategy/`, `reference/strategy/`, `strategy/`, `docs/` |
-
-**Step 3: If no structure exists (greenfield repo), use defaults**
-
-| Output type | Default destination |
-|-------------|-------------------|
-| Feature specs | `projects/<initiative>/` |
-| Decision docs | `work/decisions/` |
-| Analyses and prioritization | `work/analyses/` |
-| Checklists | `work/checklists/` |
-| Research and competitive | `work/research/` |
-| Review panel reports | Next to the reviewed spec |
-| Strategy and North Star | `knowledge/strategy/` |
+| Question | Destination |
+|----------|------------|
+| Can you name the feature or project? | `projects/<name>/` |
+| Is it general knowledge, cross-cutting analysis, or a reusable insight? | `knowledge/wiki/` |
 
 **Rules:**
-- Detect first, default second. Never overwrite existing conventions
-- If the destination folder doesn't exist, create it
+
+- If the folder doesn't exist, create it
 - If a file with the same name exists, append a version suffix (`-v2`, `-v3`) rather than overwriting
 - Never save outputs to the repo root
-- If unsure which folder to use (e.g., repo has both `docs/` and `work/`), check where the most recent similar file was saved and follow that pattern
 
 ## 4. Smart Output Versioning
 
@@ -287,7 +256,7 @@ Surface patterns and suggest improvements. Never apply changes automatically.
 - Format: "The competitive analysis in [file] is from [date]. Want me to refresh it with `/competitor-analysis`?"
 
 **Trigger: Missing context**
-- When a skill checks for context files and finds none (e.g., `/impact-sizing` looks for user research but `knowledge/research/` is empty), note the gap
+- When a skill checks for context files and finds none (e.g., `/impact-sizing` looks for user research but no `synthesis-*.md` pages exist in `knowledge/wiki/`), note the gap
 - Format: "This sizing would be stronger with user research data. Run `/user-research-synthesis` first, or I'll work with what we have."
 
 **Rules:**
@@ -359,7 +328,7 @@ Skills reference each other's outputs. When one skill produces data, downstream 
 **How it works in practice:**
 
 When any skill is invoked:
-1. Check if upstream skills have produced relevant output in `projects/` or `work/`
+1. Check if upstream skills have produced relevant output in `projects/` or `knowledge/wiki/`
 2. If found, load that context automatically (don't ask)
 3. Reference it explicitly in the output: "Based on the impact sizing from [date]..." or "The feature spec identified these requirements..."
 4. If upstream output is missing but would improve quality, note the gap (see Proactive Workflow Suggestions, "Missing context" trigger)

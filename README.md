@@ -43,7 +43,7 @@ claude plugin add prodkit
 
 Each skill is a structured prompt that guides Claude Code through a specific PM workflow. Skills ask clarifying questions, check your project context, and produce artifacts (docs, analyses, checklists) saved to your workspace.
 
-Skills reference common file paths like `knowledge/`, `projects/`, and `work/`. These are conventions, not requirements. Prodkit detects your existing folder structure and adapts to it.
+Skills save outputs to two locations: `projects/<name>/` for feature-scoped work, and `knowledge/wiki/` for cross-cutting knowledge. Raw source documents go in `knowledge/raw/`.
 
 ## Knowledge Architecture
 
@@ -51,15 +51,14 @@ Prodkit uses a three-layer knowledge system inspired by [Karpathy's LLM Wiki pat
 
 ```
 knowledge/
-  raw/              <- Your original documents. Drop files here. LLM reads, never writes.
-    README.md       <- Explains what goes here.
-  wiki/             <- LLM-maintained pages. Entities, concepts, features, decisions.
+  raw/              <- Your original documents. LLM reads, never writes.
+  wiki/             <- LLM-maintained pages. Entities, concepts, syntheses, decisions.
     INDEX.md        <- Front page. LLM reads this first to navigate.
-    README.md       <- Explains page types and naming conventions.
-  prodkit-learning-log.md  <- Created on first use. Operation history and usage patterns.
+projects/
+  <feature-name>/   <- Feature specs, review reports, launch checklists.
 ```
 
-These folders ship with the plugin. Browse them to see exactly how the system works.
+These folders ship with the plugin. Browse the READMEs inside each one to see how they work.
 
 **Three layers:**
 
@@ -102,9 +101,9 @@ Ask natural language questions and prodkit routes them to the right data source.
 
 Tracks which skills you use, what corrections you make, and how accurate your estimates are. Stored in `knowledge/prodkit-learning-log.md` (created on first event, not at install). After 20+ entries, suggests a monthly review.
 
-### Context Auto-Organization
+### File Routing
 
-Outputs go to the right folder automatically. Prodkit detects your existing folder structure first (`docs/`, `specs/`, `projects/`, whatever you already have) and maps outputs to the closest match. Only uses defaults (`projects/`, `work/`, `knowledge/`) if no structure exists yet.
+Two destinations: `projects/<name>/` for feature-scoped work (specs, reviews, checklists), `knowledge/wiki/` for everything else (research, competitor analysis, decisions, sizing, strategy). The test: can you name the feature? If yes, `projects/`. If not, `knowledge/wiki/`.
 
 ### Smart Output Versioning
 
