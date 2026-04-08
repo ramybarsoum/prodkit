@@ -51,19 +51,23 @@ Prodkit uses a three-layer knowledge system inspired by [Karpathy's LLM Wiki pat
 
 ```
 knowledge/
-  raw/            <- Your original documents. LLM reads, never writes.
-  wiki/           <- LLM-maintained pages. Entities, concepts, features, decisions.
-    INDEX.md      <- Front page. LLM reads this first to navigate.
-  prodkit-learning-log.md  <- Operation history and usage patterns.
+  raw/              <- Your original documents. Drop files here. LLM reads, never writes.
+    README.md       <- Explains what goes here.
+  wiki/             <- LLM-maintained pages. Entities, concepts, features, decisions.
+    INDEX.md        <- Front page. LLM reads this first to navigate.
+    README.md       <- Explains page types and naming conventions.
+  prodkit-learning-log.md  <- Created on first use. Operation history and usage patterns.
 ```
+
+These folders ship with the plugin. Browse them to see exactly how the system works.
 
 **Three layers:**
 
-1. **Raw sources** (`knowledge/raw/`). Drop your documents here: interview transcripts, strategy decks, analytics exports, competitor screenshots. Prodkit reads them but never modifies them. They're the source of truth.
+1. **Raw sources** ([`knowledge/raw/`](knowledge/raw/)). Drop your documents here: interview transcripts, strategy decks, analytics exports, competitor screenshots. Prodkit reads them but never modifies them. They're the source of truth.
 
-2. **The wiki** (`knowledge/wiki/`). Prodkit writes and maintains this. Entity pages for people and companies. Feature pages that aggregate specs, sizing, and decisions. Concept pages for frameworks. Comparison pages for competitors. Cross-linked, backlinked, and kept consistent as new sources arrive.
+2. **The wiki** ([`knowledge/wiki/`](knowledge/wiki/)). Prodkit writes and maintains this. Entity pages for people and companies. Feature pages that aggregate specs, sizing, and decisions. Concept pages for frameworks. Comparison pages for competitors. Cross-linked, backlinked, and kept consistent as new sources arrive. Start with the [INDEX.md](knowledge/wiki/INDEX.md).
 
-3. **The schema** (`CLAUDE.md`). Tells the LLM how to ingest sources, query the wiki, and maintain it over time. You and the LLM co-evolve this as you figure out what works for your domain.
+3. **The schema** ([`CLAUDE.md`](CLAUDE.md)). Tells the LLM how to ingest sources, query the wiki, and maintain it over time. You and the LLM co-evolve this as you figure out what works for your domain.
 
 **Three operations:**
 
