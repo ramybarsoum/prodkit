@@ -1,0 +1,21 @@
+{
+  "name": "prodkit",
+  "version": "1.0.0",
+  "description": "PM toolkit for Claude Code. Feature spec interviews, doc reviews, impact sizing, prioritization, and more.",
+  "author": {
+    "name": "Ramy Barsoum",
+    "url": "https://github.com/ramybarsoum"
+  },
+  "repository": "https://github.com/ramybarsoum/prodkit",
+  "license": "MIT",
+  "keywords": [
+    "product-management",
+    "feature-specs",
+    "pm-tools",
+    "claude-code",
+    "specification",
+    "prioritization",
+    "impact-sizing",
+    "competitor-analysis"
+  ]
+}
