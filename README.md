@@ -56,6 +56,38 @@ Key concepts:
 - **Two-tier output**: Tier 1 (behavioral contract for execution) + Tier 2 (strategic context for humans)
 - **Gate check**: Before any interview, 4 gate questions validate the feature should enter the pipeline at all
 
+## Built-in Automations
+
+Prodkit includes 7 passive automation systems that make skills smarter across sessions. No setup required. They activate automatically via `CLAUDE.md`.
+
+### MCP Routing Engine
+
+Ask natural language questions and prodkit routes them to the right data source. Analytics MCPs for metrics queries, PM tools for ticket status, workspace files as fallback. If no MCP is connected, it works with local files silently.
+
+### Self-Updating Learning Log
+
+Tracks which skills you use, what corrections you make, and how accurate your estimates are. Stored in `knowledge/prodkit-learning-log.md` (created on first event, not at install). After 20+ entries, suggests a monthly review.
+
+### Context Auto-Organization
+
+Outputs go to the right folder automatically. Prodkit detects your existing folder structure first (`docs/`, `specs/`, `projects/`, whatever you already have) and maps outputs to the closest match. Only uses defaults (`projects/`, `work/`, `knowledge/`) if no structure exists yet.
+
+### Smart Output Versioning
+
+If you run the same skill twice in one day, prodkit asks whether to update the existing file or create a new version. Every output gets a hidden version header for tracking. No silent overwrites.
+
+### Proactive Workflow Suggestions
+
+After 3+ similar corrections (e.g., "too long" three times), suggests updating your style preferences. After 3+ repeated skill sequences, suggests combining them. Flags stale context files older than 2 weeks. Notes missing upstream data that would improve output quality.
+
+### Parallel Execution
+
+When processing 3+ independent items (multiple interviews, competitors, or review perspectives), prodkit spawns parallel sub-agents instead of working sequentially. Synthesizes results into a single output and flags conflicts.
+
+### Skill Interconnection Graph
+
+Skills reference each other's outputs automatically. `/feature-spec-interview` output feeds into `/feature-doc-review-panel`. `/impact-sizing` estimates get calibrated against actual post-launch results. `/user-research-synthesis` outputs enrich future spec interviews. The full dependency map is in `CLAUDE.md`.
+
 ## Requirements
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI or Desktop
